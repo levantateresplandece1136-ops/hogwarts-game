@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hogwarts Board Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c;
+    --dark-gold: #8b6914;
+    --parchment: #f5e6c8;
+    --parchment-dark: #e8d5a3;
+    --gryffindor: #740001;
+    --slytherin: #1a472a;
+    --ravenclaw: #0e1a40;
+    --hufflepuff: #ecb939;
+    --ink: #2c1810;
+    --gem: #5b9bd5;
+    --gem-dark: #2e6da4;
+    --shadow: rgba(44,24,16,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a0a00;
+    font-family: 'Cinzel', serif;
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(ellipse at top, #2d1200 0%, #0a0400 100%),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a84c' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  /* ─── SETUP SCREEN ─── */
+  #setup-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    gap: 2rem;
+  }
+
+  .hogwarts-title {
+    text-align: center;
+  }
+
+  .hogwarts-title h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(2rem, 6vw, 4rem);
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(201,168,76,0.6), 2px 2px 0 var(--dark-gold);
+    letter-spacing: 0.05em;
+  }
+
+  .hogwarts-title p {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    color: var(--parchment-dark);
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+    opacity: 0.8;
+  }
+
+  .setup-card {
+    background: linear-gradient(135deg, var(--parchment) 0%, var(--parchment-dark) 100%);
+    border: 3px solid var(--gold);
+    border-radius: 4px;
+    padding: 2rem 2.5rem;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 8px 40px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.5);
+    position: relative;
+  }
+
+  .setup-card::before {
+    content: '⚡';
+    position: absolute;
+    top: -14px; left: 50%; transform: translateX(-50%);
+    background: var(--parchment);
+    padding: 0 10px;
+    font-size: 1.4rem;
+  }
+
+  .setup-card h2 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.2rem;
+    color: var(--dark-gold);
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .player-count-selector {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .count-btn {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    border: 2px solid var(--dark-gold);
+    background: white;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: var(--dark-gold);
+    transition: all 0.2s;
+  }
+
+  .count-btn.active, .count-btn:hover {
+    background: var(--dark-gold);
+    color: white;
+    transform: scale(1.1);
+  }
+
+  #players-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    margin-bottom: 1.5rem;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .player-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+
+  .player-row .house-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px var(--shadow);
+  }
+
+  .player-row input {
+    flex: 1;
+    padding: 0.5rem 0.8rem;
+    border: 2px solid var(--gold);
+    border-radius: 4px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    background: white;
+    color: var(--ink);
+  }
+
+  .house-select {
+    padding: 0.5rem;
+    border: 2px solid var(--gold);
+    border-radius: 4px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    background: white;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--dark-gold), var(--gold));
+    border: none;
+    border-radius: 4px;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.1rem;
+    color: white;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(139,105,20,0.4);
+  }
+
+  .start-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139,105,20,0.5); }
+
+  /* ─── GAME SCREEN ─── */
+  #game-screen { display: none; min-height: 100vh; padding: 1rem; }
+
+  .game-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr 220px;
+    gap: 1rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* ─── PLAYER PANELS ─── */
+  .players-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .player-card {
+    background: linear-gradient(135deg, var(--parchment), var(--parchment-dark));
+    border: 2px solid var(--gold);
+    border-radius: 4px;
+    padding: 0.7rem;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .player-card.active-turn {
+    border-color: #fff;
+    box-shadow: 0 0 20px rgba(201,168,76,0.8);
+    transform: scale(1.03);
+  }
+
+  .player-card .player-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .player-card .stats {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .stat-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    background: white;
+    border-radius: 12px;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--gold);
+    font-weight: 600;
+  }
+
+  .stat-badge.gems { color: var(--gem-dark); }
+  .stat-badge.pts { color: var(--gryffindor); }
+
+  .jail-badge {
+    position: absolute; top: 4px; right: 4px;
+    background: var(--gryffindor);
+    color: white; font-size: 0.6rem;
+    padding: 1px 5px; border-radius: 8px;
+    font-family: 'Cinzel', serif;
+  }
+
+  /* ─── BOARD ─── */
+  .board-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .board-container {
+    position: relative;
+    width: 100%;
+    max-width: 660px;
+    aspect-ratio: 1;
+  }
+
+  #board {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #d4a943, #c49535, #b8862a);
+    border: 4px solid var(--dark-gold);
+    border-radius: 4px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    gap: 2px;
+    padding: 2px;
+  }
+
+  .cell {
+    background: var(--parchment);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.45rem;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    padding: 2px;
+    transition: all 0.2s;
+    overflow: hidden;
+    line-height: 1.2;
+  }
+
+  .cell:hover { filter: brightness(1.1); z-index: 2; }
+
+  .cell.center-logo {
+    background: linear-gradient(135deg, #f5e6c8, #e8d5a3);
+    grid-column: 4 / 7; grid-row: 4 / 7;
+    font-size: 1rem;
+    cursor: default;
+    border: 2px solid var(--gold);
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .cell.empty-inner {
+    background: transparent;
+    cursor: default;
+    border: none;
+  }
+
+  .cell-type-special { background: linear-gradient(135deg, #fff3cd, #ffd966); }
+  .cell-type-felix { background: linear-gradient(135deg, #ffd700, #ff8c00); }
+  .cell-type-owl { background: linear-gradient(135deg, #e8d5a3, #c9a84c); }
+  .cell-type-jail { background: linear-gradient(135deg, #8b0000, #c0392b); color: white; }
+  .cell-type-activity { background: var(--parchment); }
+
+  .cell-number {
+    position: absolute;
+    top: 1px; right: 2px;
+    font-size: 0.5rem;
+    font-weight: 700;
+    color: var(--dark-gold);
+    opacity: 0.7;
+    font-family: 'Cinzel', serif;
+  }
+
+  .cell-icon { font-size: 0.9rem; display: block; }
+  .cell-label { font-size: 0.38rem; font-family: 'Cinzel', serif; color: var(--ink); line-height: 1.1; }
+
+  .pawn {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    position: absolute;
+    transition: all 0.5s ease;
+    z-index: 10;
+    font-size: 0.55rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ─── DICE ─── */
+  .dice-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--parchment), var(--parchment-dark));
+    border: 2px solid var(--gold);
+    border-radius: 4px;
+    width: 100%;
+    max-width: 660px;
+  }
+
+  .current-player-info {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.85rem;
+    color: var(--dark-gold);
+    text-align: center;
+  }
+
+  #dice-display {
+    font-size: 3rem;
+    line-height: 1;
+    transition: transform 0.1s;
+    cursor: pointer;
+    user-select: none;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  }
+
+  #dice-display.rolling {
+    animation: diceRoll 0.6s ease-out;
+  }
+
+  @keyframes diceRoll {
+    0% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(90deg) scale(1.2); }
+    50% { transform: rotate(180deg) scale(0.9); }
+    75% { transform: rotate(270deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+
+  .roll-btn {
+    padding: 0.7rem 2rem;
+    background: linear-gradient(135deg, var(--dark-gold), var(--gold));
+    border: none;
+    border-radius: 4px;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  .roll-btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.1); }
+  .roll-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ─── ACTIVITY MODAL ─── */
+  #activity-modal {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    backdrop-filter: blur(4px);
+  }
+
+  #activity-modal.show { display: flex; }
+
+  .modal-card {
+    background: linear-gradient(135deg, var(--parchment) 0%, var(--parchment-dark) 100%);
+    border: 3px solid var(--gold);
+    border-radius: 6px;
+    padding: 2rem;
+    max-width: 520px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    position: relative;
+    animation: modalIn 0.3s ease-out;
+    text-align: center;
+  }
+
+  @keyframes modalIn {
+    from { transform: scale(0.8) translateY(30px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  .modal-card .cell-icon-big { font-size: 3rem; margin-bottom: 0.5rem; display: block; }
+  .modal-card h2 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.3rem;
+    color: var(--dark-gold);
+    margin-bottom: 0.3rem;
+  }
+
+  .modal-type-badge {
+    display: inline-block;
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .modal-card .activity-desc {
+    font-family: 'IM Fell English', serif;
+    font-size: 1.05rem;
+    color: var(--ink);
+    margin-bottom: 0.8rem;
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  .modal-card .activity-instruction {
+    background: white;
+    border: 1px solid var(--gold);
+    border-radius: 4px;
+    padding: 0.8rem;
+    font-size: 0.9rem;
+    color: var(--ink);
+    margin-bottom: 1.2rem;
+    line-height: 1.5;
+    font-family: 'Cinzel', serif;
+  }
+
+  .reward-text {
+    font-size: 0.85rem;
+    color: var(--dark-gold);
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  .modal-buttons {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-success {
+    padding: 0.6rem 1.5rem;
+    background: linear-gradient(135deg, #1a5c2a, #2e8b57);
+    border: none; border-radius: 4px;
+    color: white; font-family: 'Cinzel', serif;
+    font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+
+  .btn-fail {
+    padding: 0.6rem 1.5rem;
+    background: linear-gradient(135deg, #8b0000, #c0392b);
+    border: none; border-radius: 4px;
+    color: white; font-family: 'Cinzel', serif;
+    font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+
+  .btn-neutral {
+    padding: 0.6rem 1.5rem;
+    background: linear-gradient(135deg, var(--dark-gold), var(--gold));
+    border: none; border-radius: 4px;
+    color: white; font-family: 'Cinzel', serif;
+    font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+
+  .btn-success:hover, .btn-fail:hover, .btn-neutral:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+  /* ─── TIMER ─── */
+  #timer-bar { width: 100%; height: 6px; background: #ddd; border-radius: 3px; margin-bottom: 0.8rem; display: none; }
+  #timer-fill { height: 100%; background: linear-gradient(90deg, #2e8b57, #ffd700, #c0392b); border-radius: 3px; transition: width 0.1s linear; }
+
+  /* ─── LOG ─── */
+  .game-log {
+    background: linear-gradient(135deg, var(--parchment), var(--parchment-dark));
+    border: 2px solid var(--gold);
+    border-radius: 4px;
+    padding: 0.8rem;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .game-log h3 {
+    font-size: 0.75rem;
+    color: var(--dark-gold);
+    margin-bottom: 0.5rem;
+    font-family: 'Cinzel Decorative', serif;
+  }
+
+  .log-entry {
+    font-family: 'IM Fell English', serif;
+    font-size: 0.75rem;
+    color: var(--ink);
+    padding: 0.2rem 0;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    line-height: 1.4;
+  }
+
+  /* ─── WINNER ─── */
+  #winner-screen {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  #winner-screen.show { display: flex; }
+
+  #winner-screen h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(2rem, 6vw, 4rem);
+    color: var(--gold);
+    text-shadow: 0 0 40px rgba(201,168,76,0.8);
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+  #winner-name {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    color: white;
+    font-family: 'Cinzel', serif;
+  }
+
+  .confetti { font-size: 3rem; animation: spin 2s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .play-again-btn {
+    padding: 1rem 2.5rem;
+    background: linear-gradient(135deg, var(--dark-gold), var(--gold));
+    border: none; border-radius: 4px;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.1rem; color: white;
+    cursor: pointer; transition: all 0.2s;
+    margin-top: 1rem;
+  }
+
+  .play-again-btn:hover { transform: scale(1.05); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .game-layout { grid-template-columns: 1fr; }
+    .players-panel { flex-direction: row; flex-wrap: wrap; }
+    .player-card { min-width: 140px; flex: 1; }
+    .right-panel { order: -1; }
+  }
+
+  /* House colors */
+  .house-G { background: var(--gryffindor) !important; }
+  .house-S { background: var(--slytherin) !important; }
+  .house-R { background: var(--ravenclaw) !important; }
+  .house-H { background: var(--hufflepuff) !important; }
+
+  .gem-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffc107);
+    border: 2px solid #ffc107;
+    border-radius: 4px;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    font-family: 'Cinzel', serif;
+    color: var(--ink);
+  }
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="hogwarts-title">
+    <h1>⚡ HOGWARTS ⚡</h1>
+    <p>El Gran Juego de Magia</p>
+  </div>
+  <div class="setup-card">
+    <h2>¿Cuántos jugadores?</h2>
+    <div class="player-count-selector">
+      <button class="count-btn" onclick="setPlayerCount(2)">2</button>
+      <button class="count-btn" onclick="setPlayerCount(3)">3</button>
+      <button class="count-btn" onclick="setPlayerCount(4)">4</button>
+      <button class="count-btn" onclick="setPlayerCount(5)">5</button>
+      <button class="count-btn" onclick="setPlayerCount(6)">6</button>
+      <button class="count-btn" onclick="setPlayerCount(7)">7</button>
+      <button class="count-btn" onclick="setPlayerCount(8)">8</button>
+    </div>
+    <div id="players-form"></div>
+    <button class="start-btn" onclick="startGame()">🧙 ¡Que comience la magia!</button>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen">
+  <div class="game-layout">
+    <!-- LEFT: Players 1-4 -->
+    <div class="players-panel" id="left-panel"></div>
+
+    <!-- CENTER: Board + Dice -->
+    <div class="board-wrapper">
+      <div class="board-container">
+        <div id="board"></div>
+      </div>
+      <div class="dice-area">
+        <div class="current-player-info" id="turn-info">Turno de...</div>
+        <div id="dice-display" onclick="rollDice()">🎲</div>
+        <button class="roll-btn" id="roll-btn" onclick="rollDice()">Lanzar Dado</button>
+      </div>
+      <div class="game-log">
+        <h3>📜 Crónica de Hogwarts</h3>
+        <div id="log-entries"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Players 5-8 -->
+    <div class="players-panel" id="right-panel"></div>
+  </div>
+</div>
+
+<!-- ACTIVITY MODAL -->
+<div id="activity-modal">
+  <div class="modal-card">
+    <span class="cell-icon-big" id="modal-icon"></span>
+    <h2 id="modal-title"></h2>
+    <span class="modal-type-badge" id="modal-badge"></span>
+    <div class="activity-desc" id="modal-desc"></div>
+    <div class="activity-instruction" id="modal-instruction"></div>
+    <div id="timer-bar"><div id="timer-fill"></div></div>
+    <div class="reward-text" id="modal-reward"></div>
+    <div id="gem-warning" class="gem-warning" style="display:none"></div>
+    <div class="modal-buttons" id="modal-buttons"></div>
+  </div>
+</div>
+
+<!-- WINNER SCREEN -->
+<div id="winner-screen">
+  <span class="confetti">✨</span>
+  <h1>¡GANADOR!</h1>
+  <div id="winner-name"></div>
+  <div style="color: var(--gold); font-family: 'Cinzel', serif; font-size: 1.1rem" id="winner-stats"></div>
+  <button class="play-again-btn" onclick="location.reload()">🔮 Jugar de Nuevo</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// BOARD DEFINITION (36 cells around perimeter + inner path)
+// ══════════════════════════════════════════
+
+const HOUSE_COLORS = {
+  G: '#740001', S: '#1a472a', R: '#0e1a40', H: '#ecb939'
+};
+
+const HOUSE_NAMES = {
+  G: 'Gryffindor', S: 'Slytherin', R: 'Ravenclaw', H: 'Hufflepuff'
+};
+
+const WINNING_SCORE = 200;
+
+// Cell types
+const T = {
+  FELIX: 'felix',
+  OWL: 'owl',
+  JAIL: 'jail',
+  ACTIVITY: 'activity',
+  POINTS: 'points',
+  START: 'start',
+  EMPTY: 'empty'
+};
+
+// Activities matching board names
+const ACTIVITIES = [
+  // START
+  { id: 0, name: 'Inicio', icon: '🏰', type: T.START, pts: 0,
+    desc: 'Tu historia en Hogwarts comienza.',
+    instruction: 'Lanza el dado para comenzar tu aventura mágica.',
+    badge: '🏁 INICIO', badgeColor: '#8b6914', badgeBg: '#ffd966' },
+
+  // 1 - Crisomela Mágica (Magical Creature)
+  { id: 1, name: 'Crisomelá Mágica', icon: '🦎', type: T.ACTIVITY, pts: 20,
+    desc: 'Una Crisomela Mágica te bloquea el camino.',
+    instruction: '🎭 MÍMICA: Actúa una criatura mágica del mundo de Harry Potter sin hablar ni hacer sonidos. Tu equipo tiene 30 segundos para adivinar. ¡Sin palabras!',
+    badge: '🎭 MÍMICA', badgeColor: '#1a5c2a', badgeBg: '#c8f5d5',
+    timer: 30 },
+
+  // 2 - Gana puntos
+  { id: 2, name: 'Brujería Básica', icon: '⚡', type: T.POINTS, pts: 10,
+    desc: 'Demostraste talento en Brujería Básica.',
+    instruction: 'Avanzas sin actividad. ¡Ganas puntos por tu destreza natural!',
+    badge: '✨ PUNTOS', badgeColor: '#8b6914', badgeBg: '#ffd966' },
+
+  // 3 - Lechuza escapó (PENALIZACIÓN)
+  { id: 3, name: 'Lechuza Escapó', icon: '🦉', type: T.OWL, pts: 0, gem: -20,
+    desc: '¡Tu lechuza ha escapado con el mensaje importantísimo!',
+    instruction: '🦉 Debes pagar 20 💎 GEMAS para recuperar el mensaje y continuar tu camino.',
+    badge: '🦉 PENALIZACIÓN', badgeColor: '#8b0000', badgeBg: '#ffe0e0' },
+
+  // 4 - Felix Felicis
+  { id: 4, name: 'Felix Felicis', icon: '🍀', type: T.FELIX, pts: 50,
+    desc: '¡Has encontrado una dosis de Felix Felicis, la poción de la Suerte!',
+    instruction: '🍀 ¡La suerte te sonríe! Ganas puntos de bonificación Y tienes ventaja en la siguiente actividad (puedes ver la tarjeta 5 segundos antes).',
+    badge: '🍀 FELIX FELICIS', badgeColor: '#b8860b', badgeBg: '#fff8dc' },
+
+  // 5 - Expecto Patronum (Mímica)
+  { id: 5, name: 'Expecto Patronum', icon: '🦌', type: T.ACTIVITY, pts: 30,
+    desc: 'Los Dementores se acercan. ¡Necesitas invocar tu Patronus!',
+    instruction: '🎭 MÍMICA: Actúa el Patronus de uno de estos magos: Harry (ciervo), Hermione (nutria), Luna (liebre), Snape (cierva), Dumbledore (fénix). ¡Sin sonidos!',
+    badge: '🎭 MÍMICA', badgeColor: '#1a5c2a', badgeBg: '#c8f5d5',
+    timer: 30 },
+
+  // 6 - Pregunta de Magia
+  { id: 6, name: 'Clase de Pociones', icon: '🧪', type: T.ACTIVITY, pts: 20,
+    desc: 'El Profesor Snape te hace una pregunta sorpresa en Pociones.',
+    instruction: '❓ TRIVIA: Dame 3 ingredientes que se usen en pociones del mundo de Harry Potter. ¡Tienes 15 segundos!',
+    badge: '❓ TRIVIA', badgeColor: '#0e1a40', badgeBg: '#d0e4ff',
+    timer: 15 },
+
+  // 7 - Severus (CÁRCEL)
+  { id: 7, name: 'Detención con Snape', icon: '🧙‍♂️', type: T.JAIL,
+    desc: '¡Snape te envió a detención! Pierdes tu turno en el calabozo.',
+    instruction: '⛓️ "No hay excusas, y no hay salida." - Severus Snape. Pierdes tu próximo turno. Espera en el calabozo.',
+    badge: '⛓️ CÁRCEL', badgeColor: '#ffffff', badgeBg: '#8b0000' },
+
+  // 8 - ¿Quién soy?
+  { id: 8, name: 'Espejo de Oesed', icon: '🪞', type: T.ACTIVITY, pts: 25,
+    desc: 'El Espejo de Oesed revela quién eres en el fondo.',
+    instruction: '🤔 ¿QUIÉN SOY?: Los demás jugadores saben que eres un personaje de HP. Haz preguntas de SÍ/NO para adivinar quién eres. Máximo 10 preguntas.',
+    badge: '🤔 ¿QUIÉN SOY?', badgeColor: '#4a0080', badgeBg: '#ead5ff' },
+
+  // 9 - Password
+  { id: 9, name: 'Mapa del Merodeador', icon: '🗺️', type: T.ACTIVITY, pts: 30,
+    desc: 'El Mapa del Merodeador revela una palabra secreta. ¡Pásala en código!',
+    instruction: '🔐 PASSWORD: Da solo UNA palabra pista para que tu equipo adivine la palabra secreta. Sin decir la palabra, sin señas. ¡Una sola palabra!',
+    badge: '🔐 PASSWORD', badgeColor: '#1a5c2a', badgeBg: '#c8f5d5' },
+
+  // 10 - Dame 3 cosas
+  { id: 10, name: 'Biblioteca de Hogwarts', icon: '📚', type: T.ACTIVITY, pts: 20,
+    desc: 'La señora Pince te reta con un examen de conocimientos.',
+    instruction: '📋 DAME 3: Di 3 hechizos del mundo de Harry Potter en 10 segundos. ¡Sin repetir los del turno anterior!',
+    badge: '📋 DAME 3', badgeColor: '#8b6914', badgeBg: '#fff3cd',
+    timer: 10 },
+
+  // 11 - Gana puntos
+  { id: 11, name: 'Práctica de Quidditch', icon: '🧹', type: T.POINTS, pts: 10,
+    desc: 'Entrenaste duro en el campo de Quidditch.',
+    instruction: 'Vuelas bien esta ronda. ¡Ganas puntos!',
+    badge: '✨ PUNTOS', badgeColor: '#8b6914', badgeBg: '#ffd966' },
+
+  // 12 - Trabalenguas (Boca Llena style)
+  { id: 12, name: 'Hechizo Virelenguas', icon: '👅', type: T.ACTIVITY, pts: 25,
+    desc: '¡Un hechizo enreda tu lengua! Debes romperlo hablando.',
+    instruction: '👅 TRABALENGUAS: Di "Wingardium Leviosa, Lumos Maxima, Expelliarmus Magnifico" 3 veces seguidas lo más rápido que puedas. ¡El grupo juzga si lo lograste!',
+    badge: '👅 TRABALENGUAS', badgeColor: '#4a0080', badgeBg: '#ead5ff' },
+
+  // 13 - Dibujar hechizo
+  { id: 13, name: 'Taller de Runas', icon: '✍️', type: T.ACTIVITY, pts: 30,
+    desc: 'En el Taller de Runas Antiguas, debes comunicarte solo con dibujos.',
+    instruction: '✏️ DIBUJA: Dibuja en papel/aire un hechizo o criatura mágica sin letras ni palabras. Tu equipo tiene 30 segundos para adivinar.',
+    badge: '✏️ DIBUJA', badgeColor: '#1a5c2a', badgeBg: '#c8f5d5',
+    timer: 30 },
+
+  // 14 - Lechuza escapó
+  { id: 14, name: 'Lechuza Despistada', icon: '🦉', type: T.OWL, pts: 0, gem: -20,
+    desc: '¡Otra lechuza perdida! El correo mágico falla hoy.',
+    instruction: '🦉 Paga 20 💎 GEMAS para enviar tu mensaje por otro medio y continuar.',
+    badge: '🦉 PENALIZACIÓN', badgeColor: '#8b0000', badgeBg: '#ffe0e0' },
+
+  // 15 - ¿Quién soy?
+  { id: 15, name: 'Sombrero Seleccionador', icon: '🎩', type: T.ACTIVITY, pts: 25,
+    desc: 'El Sombrero Seleccionador ve tu interior... ¿puedes descubrirlo?',
+    instruction: '🤔 ¿QUIÉN SOY?: El jugador a tu izquierda escribe en un papel el nombre de un personaje de HP. Pégalo en tu frente. Haz preguntas de SÍ/NO para adivinar. ¡10 preguntas máximo!',
+    badge: '🤔 ¿QUIÉN SOY?', badgeColor: '#4a0080', badgeBg: '#ead5ff' },
+
+  // 16 - Trivia
+  { id: 16, name: 'Examen O.W.L.', icon: '📜', type: T.ACTIVITY, pts: 30,
+    desc: 'Es tiempo de los O.W.L.s (Niveles Mágicos Ordinarios).',
+    instruction: '❓ TRIVIA: ¿Cuál es el hechizo que usa Harry para derrotar a Voldemort en la batalla final? ¿Y cuál es su nombre completo real de Voldemort?',
+    badge: '❓ TRIVIA', badgeColor: '#0e1a40', badgeBg: '#d0e4ff' },
+
+  // 17 - Mímica
+  { id: 17, name: 'Club de Duelo', icon: '⚔️', type: T.ACTIVITY, pts: 25,
+    desc: 'En el Club de Duelo debes demostrar tu habilidad sin palabras.',
+    instruction: '🎭 MÍMICA: Actúa una escena de duelo mágico famosa de la saga. Tu equipo adivina qué escena es. ¡30 segundos!',
+    badge: '🎭 MÍMICA', badgeColor: '#1a5c2a', badgeBg: '#c8f5d5',
+    timer: 30 },
+
+  // 18 - Password
+  { id: 18, name: 'Contraseña del Gryffindor', icon: '🔐', type: T.ACTIVITY, pts: 30,
+    desc: 'El cuadro de la Señora Gorda pide la contraseña secreta.',
+    instruction: '🔐 PASSWORD: Elige UNA de estas palabras: NIMBUS / QUAFFLE / DUMBLEDORE / PHOENIX. Da solo UNA palabra pista para que tu equipo la adivine. ¡Sin señas!',
+    badge: '🔐 PASSWORD', badgeColor: '#1a5c2a', badgeBg: '#c8f5d5' },
+
+  // 19 - Puntos
+  { id: 19, name: 'Copa de las Casas', icon: '🏆', type: T.POINTS, pts: 10,
+    desc: 'Contribuiste puntos para la Copa de las Casas.',
+    instruction: '¡Bien hecho! Puntos para tu cuenta.',
+    badge: '✨ PUNTOS', badgeColor: '#8b6914', badgeBg: '#ffd966' },
+
+  // 20 - Dame 3
+  { id: 20, name: 'Sala de los Menesteres', icon: '🚪', type: T.ACTIVITY, pts: 20,
+    desc: 'La Sala de los Menesteres aparece con un desafío.',
+    instruction: '📋 DAME 3: Di 3 nombres de profesores de Hogwarts en 10 segundos. ¡Sin repetir!',
+    badge: '📋 DAME 3', badgeColor: '#8b6914', badgeBg: '#fff3cd',
+    timer: 10 },
+
+  // 21 - Espejo (¿Quién soy?)
+  { id: 21, name: 'Pergamino Misterioso', icon: '📋', type: T.ACTIVITY, pts: 25,
+    desc: 'Un pergamino misterioso tiene una identidad oculta.',
+    instruction: '🤔 ¿QUIÉN SOY?: Se te asigna un objeto mágico icónico de HP (varita, capa, piedra, sombrero...). Haz preguntas de SÍ/NO para adivinar cuál es. ¡8 preguntas!',
+    badge: '🤔 ¿QUIÉN SOY?', badgeColor: '#4a0080', badgeBg: '#ead5ff' },
+
+  // 22 - Trivia
+  { id: 22, name: 'Clases de Historia', icon: '🏛️', type: T.ACTIVITY, pts: 20,
+    desc: 'El Profesor Bins te hace una pregunta de Historia de la Magia.',
+    instruction: '❓ TRIVIA: ¿Cuántos años estuvo Sirius Black en Azkaban? ¿Y cuál fue su crimen supuesto?',
+    badge: '❓ TRIVIA', badgeColor: '#0e1a40', badgeBg: '#d0e4ff' },
+
+  // 23 - Trablenguaes
+  { id: 23, name: 'Hechizo Enredado', icon: '🌀', type: T.ACTIVITY, pts: 25,
+    desc: 'Un hechizo te enredó la lengua. ¡Rompe el encantamiento!',
+    instruction: '👅 TRABALENGUAS: Repite 3 veces: "Albus Percival Wulfric Brian Dumbledore decretó que Draco Malfoy merecía detención". ¡El grupo juzga!',
+    badge: '👅 TRABALENGUAS', badgeColor: '#4a0080', badgeBg: '#ead5ff' },
+
+  // 24 - Felix Felicis
+  { id: 24, name: 'Felix Felicis', icon: '🍀', type: T.FELIX, pts: 50,
+    desc: '¡Otra dosis de Felix Felicis! ¡La suerte te acompaña!',
+    instruction: '🍀 ¡Eres el favorito de la fortuna! Ganas puntos extra Y puedes elegir tu próximo movimiento (tira el dado y escoge ir hacia adelante o atrás).',
+    badge: '🍀 FELIX FELICIS', badgeColor: '#b8860b', badgeBg: '#fff8dc' },
+
+  // 25 - Dibuja
+  { id: 25, name: 'Clase de Astronomía', icon: '🔭', type: T.ACTIVITY, pts: 30,
+    desc: 'Desde la torre de Astronomía, debes comunicar constelaciones.',
+    instruction: '✏️ DIBUJA: Dibuja en papel una escena o lugar del mundo de HP sin letras. El jugador a tu derecha adivina. ¡30 segundos!',
+    badge: '✏️ DIBUJA', badgeColor: '#1a5c2a', badgeBg: '#c8f5d5',
+    timer: 30 },
+
+  // 26 - Cárcel (Snape)
+  { id: 26, name: 'Detención con Filch', icon: '🔑', type: T.JAIL,
+    desc: 'Filch te atrapó fuera del dormitorio. ¡A pulir trofeos toda la noche!',
+    instruction: '⛓️ Filch te lleva al castigo. Pierdes tu próximo turno limpiando con el señor Norris.',
+    badge: '⛓️ CÁRCEL', badgeColor: '#ffffff', badgeBg: '#8b0000' },
+
+  // 27 - Dame 3
+  { id: 27, name: 'Tienda de Animales Mágicos', icon: '🐢', type: T.ACTIVITY, pts: 20,
+    desc: 'En la tienda de Magizoología, pon a prueba tu conocimiento.',
+    instruction: '📋 DAME 3: Di 3 criaturas mágicas del mundo de Harry Potter en 10 segundos. ¡Sin repetir!',
+    badge: '📋 DAME 3', badgeColor: '#8b6914', badgeBg: '#fff3cd',
+    timer: 10 },
+
+  // 28 - Password
+  { id: 28, name: 'Código de los Aurores', icon: '🛡️', type: T.ACTIVITY, pts: 30,
+    desc: 'Los Aurores usan códigos secretos para comunicarse.',
+    instruction: '🔐 PASSWORD: Elige una casa de Hogwarts (sin decirla). Da una sola pista de UNA PALABRA para que tu equipo adivine cuál casa es. ¡Sin señas ni gestos!',
+    badge: '🔐 PASSWORD', badgeColor: '#1a5c2a', badgeBg: '#c8f5d5' },
+
+  // 29 - Lechuza escapó
+  { id: 29, name: 'Tormenta Mágica', icon: '⛈️', type: T.OWL, pts: 0, gem: -20,
+    desc: 'Una tormenta mágica interrumpe tu avance.',
+    instruction: '⛈️ El mal tiempo mágico te detiene. Paga 20 💎 GEMAS para conjurar refugio y continuar.',
+    badge: '🦉 PENALIZACIÓN', badgeColor: '#8b0000', badgeBg: '#ffe0e0' },
+
+  // 30 - Trivia
+  { id: 30, name: 'Sala de Trofeos', icon: '🏅', type: T.ACTIVITY, pts: 30,
+    desc: 'La Sala de Trofeos guarda todos los secretos de Hogwarts.',
+    instruction: '❓ TRIVIA: ¿Cuál es el nombre del banco mágico de los magos? ¿Y quiénes lo administran?',
+    badge: '❓ TRIVIA', badgeColor: '#0e1a40', badgeBg: '#d0e4ff' },
+
+  // 31 - Mímica especial
+  { id: 31, name: 'Teatro de Sombras', icon: '🎭', type: T.ACTIVITY, pts: 25,
+    desc: 'El Teatro de Sombras revela lo que no puedes decir.',
+    instruction: '🎭 MÍMICA: Actúa una escena famosa de la saga (sin palabras ni sonidos). El grupo tiene 30 segundos para adivinar.',
+    badge: '🎭 MÍMICA', badgeColor: '#1a5c2a', badgeBg: '#c8f5d5',
+    timer: 30 },
+
+  // 32 - Puntos
+  { id: 32, name: 'Logro Especial', icon: '⭐', type: T.POINTS, pts: 10,
+    desc: 'Demostraste valentía sin ser desafiado.',
+    instruction: '¡Puntos directos a tu marcador!',
+    badge: '✨ PUNTOS', badgeColor: '#8b6914', badgeBg: '#ffd966' },
+
+  // 33 - ¿Quién soy?
+  { id: 33, name: 'Bola de Cristal', icon: '🔮', type: T.ACTIVITY, pts: 25,
+    desc: 'La Profesora Trelawney ve tu destino en la bola de cristal.',
+    instruction: '🤔 ¿QUIÉN SOY?: Se te asigna una casa de Hogwarts. Haz preguntas de SÍ/NO al grupo para adivinar en cuál estás. ¡7 preguntas!',
+    badge: '🤔 ¿QUIÉN SOY?', badgeColor: '#4a0080', badgeBg: '#ead5ff' },
+
+  // 34 - Dame 3
+  { id: 34, name: 'Árbol Boxeador', icon: '🌳', type: T.ACTIVITY, pts: 20,
+    desc: 'El Árbol Boxeador te desafía con un test de conocimientos.',
+    instruction: '📋 DAME 3: Di 3 objetos mágicos del mundo de Harry Potter en 10 segundos. ¡Sin repetir!',
+    badge: '📋 DAME 3', badgeColor: '#8b6914', badgeBg: '#fff3cd',
+    timer: 10 },
+
+  // 35 - Meta
+  { id: 35, name: 'Snitch Dorada', icon: '🟡', type: T.FELIX, pts: 100,
+    desc: '¡Atrapaste la Snitch Dorada! ¡Eres el campeón!',
+    instruction: '🏆 ¡VICTORIA! Has atrapado la Snitch Dorada. ¡Ganas 100 puntos extra y un turno adicional inmediato!',
+    badge: '🏆 VICTORIA', badgeColor: '#b8860b', badgeBg: '#fff8dc' },
+];
+
+// ══════════════════════════════════════════
+// BOARD LAYOUT (9x9 grid, cells go around perimeter + inner loop)
+// Position 0 = bottom-left area (start), goes clockwise
+// We'll use a snake path around the perimeter
+// ══════════════════════════════════════════
+
+// 9x9 grid positions for 36 cells (0-35) going clockwise around + inner
+// Row 8 (bottom) left to right: 0-8
+// Col 8 (right) top: 9-16  
+// Row 0 (top) right to left: 17-25
+// Col 0 (left) bottom: 26-33
+// Then inner ring
+// We'll simplify: 36 cells in a spiral
+
+// Grid mapping: [row, col] for each cell index 0-35
+const CELL_POSITIONS = [];
+
+// Outer ring (clockwise): bottom row L->R, right col T->B, top row R->L, left col B->T
+// Bottom row: (8,0) to (8,8) = cells 0-8
+for (let c = 0; c <= 8; c++) CELL_POSITIONS.push([8, c]);
+// Right col: (7,8) to (1,8) = cells 9-15
+for (let r = 7; r >= 1; r--) CELL_POSITIONS.push([r, 8]);
+// Top row: (0,8) to (0,0) = cells 16-24
+for (let c = 8; c >= 0; c--) CELL_POSITIONS.push([0, c]);
+// Left col: (1,0) to (7,0) = cells 25-31
+for (let r = 1; r <= 7; r++) CELL_POSITIONS.push([r, 0]);
+// Inner bottom: (7,1) to (7,3) = cells 32-34
+for (let c = 1; c <= 3; c++) CELL_POSITIONS.push([7, c]);
+// Cell 35 = inner special
+CELL_POSITIONS.push([6, 3]);
+
+// ══════════════════════════════════════════
+// GAME STATE
+// ══════════════════════════════════════════
+let players = [];
+let currentPlayerIndex = 0;
+let rolling = false;
+let waitingForActivity = false;
+let timerInterval = null;
+
+const diceFaces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+
+// Player colors (for pawns)
+const PAWN_COLORS = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#e91e63'];
+
+// ══════════════════════════════════════════
+// SETUP
+// ══════════════════════════════════════════
+let selectedCount = 4;
+
+function setPlayerCount(n) {
+  selectedCount = n;
+  document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderPlayerForm(n);
+}
+
+function renderPlayerForm(n) {
+  const form = document.getElementById('players-form');
+  const defaultNames = ['Harry','Hermione','Ron','Neville','Luna','Ginny','Draco','Cedric'];
+  const houses = ['G','G','G','G','R','G','S','H'];
+  form.innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    form.innerHTML += `
+      <div class="player-row">
+        <div class="house-dot house-${houses[i]}" id="dot-${i}"></div>
+        <input type="text" placeholder="Jugador ${i+1}" value="${defaultNames[i]}" id="pname-${i}" />
+        <select class="house-select" id="phouse-${i}" onchange="updateDot(${i})">
+          <option value="G" ${houses[i]==='G'?'selected':''}>🦁 Griff</option>
+          <option value="S" ${houses[i]==='S'?'selected':''}>🐍 Slyth</option>
+          <option value="R" ${houses[i]==='R'?'selected':''}>🦅 Rave</option>
+          <option value="H" ${houses[i]==='H'?'selected':''}>🦡 Huffle</option>
+        </select>
+      </div>`;
+  }
+}
+
+function updateDot(i) {
+  const h = document.getElementById(`phouse-${i}`).value;
+  const dot = document.getElementById(`dot-${i}`);
+  dot.className = `house-dot house-${h}`;
+}
+
+function startGame() {
+  players = [];
+  for (let i = 0; i < selectedCount; i++) {
+    const name = document.getElementById(`pname-${i}`).value || `Jugador ${i+1}`;
+    const house = document.getElementById(`phouse-${i}`).value;
+    players.push({
+      name, house,
+      position: 0,
+      points: 0,
+      gems: 50,
+      skipTurn: false,
+      color: PAWN_COLORS[i]
+    });
+  }
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'block';
+  buildBoard();
+  renderPlayers();
+  renderPawns();
+  updateTurnInfo();
+}
+
+renderPlayerForm(4);
+document.querySelectorAll('.count-btn')[2].classList.add('active'); // default 4
+
+// ══════════════════════════════════════════
+// BOARD BUILDING
+// ══════════════════════════════════════════
+function buildBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  // Create 9x9 grid of cells
+  const grid = Array.from({length:9}, () => Array(9).fill(null));
+
+  // Place activity cells
+  CELL_POSITIONS.forEach((pos, idx) => {
+    if (idx >= ACTIVITIES.length) return;
+    grid[pos[0]][pos[1]] = idx;
+  });
+
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const cellIdx = grid[r][c];
+      const div = document.createElement('div');
+      div.className = 'cell';
+      div.style.gridColumn = c + 1;
+      div.style.gridRow = r + 1;
+
+      // Center logo area (rows 2-6, cols 2-6 inner)
+      if (r >= 2 && r <= 6 && c >= 2 && c <= 7 && cellIdx === null) {
+        if (r === 4 && c === 4) {
+          div.className = 'cell center-logo';
+          div.style.gridColumn = '3 / 8';
+          div.style.gridRow = '3 / 7';
+          div.innerHTML = `<span style="font-size:2rem">⚡</span>
+            <span style="font-family:'Cinzel Decorative',serif;font-size:0.7rem;color:var(--dark-gold);text-align:center">HOGWARTS</span>
+            <span style="font-size:0.55rem;color:var(--ink);font-family:'IM Fell English',serif;font-style:italic;text-align:center">Draco Dormiens<br>Nunquam Titillandus</span>`;
+          board.appendChild(div);
+          r = 4; c = 7; // skip
+        }
+        continue;
+      }
+
+      if (cellIdx !== null && cellIdx < ACTIVITIES.length) {
+        const act = ACTIVITIES[cellIdx];
+        div.id = `cell-${cellIdx}`;
+        div.dataset.idx = cellIdx;
+
+        if (act.type === T.FELIX) div.className += ' cell-type-felix';
+        else if (act.type === T.OWL) div.className += ' cell-type-owl';
+        else if (act.type === T.JAIL) div.className += ' cell-type-jail';
+        else div.className += ' cell-type-activity';
+
+        div.innerHTML = `
+          <span class="cell-number">${cellIdx}</span>
+          <span class="cell-icon">${act.icon}</span>
+          <span class="cell-label">${act.name}</span>`;
+        div.onclick = () => showCellInfo(cellIdx);
+      } else {
+        div.className = 'cell empty-inner';
+        if (r >= 2 && r <= 6 && c >= 2 && c <= 7) continue; // skip inner empties handled by center
+      }
+
+      board.appendChild(div);
+    }
+  }
+}
+
+// ══════════════════════════════════════════
+// PLAYER UI
+// ══════════════════════════════════════════
+function renderPlayers() {
+  const leftPanel = document.getElementById('left-panel');
+  const rightPanel = document.getElementById('right-panel');
+  leftPanel.innerHTML = '';
+  rightPanel.innerHTML = '';
+
+  players.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'player-card' + (i === currentPlayerIndex ? ' active-turn' : '');
+    card.id = `player-card-${i}`;
+    card.innerHTML = `
+      <div class="player-name">
+        <span style="width:10px;height:10px;border-radius:50%;background:${p.color};display:inline-block;border:1px solid white;flex-shrink:0"></span>
+        ${p.name}
+        <span style="font-size:0.65rem;color:${HOUSE_COLORS[p.house]};font-weight:700">${p.house}</span>
+      </div>
+      <div class="stats">
+        <span class="stat-badge pts">⭐ ${p.points}</span>
+        <span class="stat-badge gems">💎 ${p.gems}</span>
+        <span class="stat-badge" style="color:var(--ink)">📍 #${p.position}</span>
+      </div>
+      ${p.skipTurn ? '<span class="jail-badge">⛓️ Turno perdido</span>' : ''}`;
+
+    if (i < 4) leftPanel.appendChild(card);
+    else rightPanel.appendChild(card);
+  });
+}
+
+function renderPawns() {
+  // Remove old pawns
+  document.querySelectorAll('.pawn').forEach(p => p.remove());
+
+  players.forEach((p, i) => {
+    const pos = CELL_POSITIONS[Math.min(p.position, CELL_POSITIONS.length - 1)];
+    if (!pos) return;
+    const board = document.getElementById('board');
+    const boardRect = board.getBoundingClientRect();
+    const cellW = boardRect.width / 9;
+    const cellH = boardRect.height / 9;
+    const offset = (i % 3) * 4; // slight offset for multiple pawns on same cell
+
+    const pawn = document.createElement('div');
+    pawn.className = 'pawn';
+    pawn.id = `pawn-${i}`;
+    pawn.style.background = p.color;
+    pawn.style.left = `${(pos[1] * cellW) + 2 + offset}px`;
+    pawn.style.top = `${(pos[0] * cellH) + 2 + Math.floor(i/3)*4}px`;
+    pawn.innerHTML = ['🦁','🐍','🦅','🦡','⚡','🔮','🌟','✨'][i % 8];
+    pawn.title = p.name;
+    board.appendChild(pawn);
+  });
+}
+
+function updateTurnInfo() {
+  const p = players[currentPlayerIndex];
+  document.getElementById('turn-info').textContent = `✨ Turno de ${p.name} (${HOUSE_NAMES[p.house]})`;
+  document.getElementById('roll-btn').disabled = false;
+}
+
+// ══════════════════════════════════════════
+// DICE & MOVEMENT
+// ══════════════════════════════════════════
+function rollDice() {
+  if (rolling || waitingForActivity) return;
+
+  const p = players[currentPlayerIndex];
+  if (p.skipTurn) {
+    p.skipTurn = false;
+    addLog(`⛓️ ${p.name} está en el calabozo y pierde este turno.`);
+    nextTurn();
+    return;
+  }
+
+  rolling = true;
+  document.getElementById('roll-btn').disabled = true;
+
+  const diceEl = document.getElementById('dice-display');
+  diceEl.classList.add('rolling');
+
+  let rolls = 0;
+  const rollAnim = setInterval(() => {
+    diceEl.textContent = diceFaces[Math.floor(Math.random() * 6)];
+    rolls++;
+    if (rolls > 10) {
+      clearInterval(rollAnim);
+      diceEl.classList.remove('rolling');
+      const result = Math.floor(Math.random() * 6) + 1;
+      diceEl.textContent = diceFaces[result - 1];
+      movePlayer(currentPlayerIndex, result);
+      rolling = false;
+    }
+  }, 80);
+}
+
+function movePlayer(idx, steps) {
+  const p = players[idx];
+  const maxPos = ACTIVITIES.length - 1;
+  p.position = Math.min(p.position + steps, maxPos);
+
+  addLog(`🎲 ${p.name} avanzó ${steps} casillas → #${p.position} (${ACTIVITIES[p.position].name})`);
+
+  renderPawns();
+  renderPlayers();
+
+  // Highlight landed cell
+  document.querySelectorAll('.cell').forEach(c => c.style.outline = '');
+  const landedCell = document.getElementById(`cell-${p.position}`);
+  if (landedCell) landedCell.style.outline = '3px solid gold';
+
+  setTimeout(() => {
+    triggerCell(p.position);
+    if (landedCell) landedCell.style.outline = '';
+  }, 500);
+
+  // Check win
+  if (p.position >= maxPos) {
+    p.points += 100;
+    setTimeout(() => showWinner(), 1500);
+    return;
+  }
+  if (p.points >= WINNING_SCORE) {
+    setTimeout(() => showWinner(), 1500);
+  }
+}
+
+// ══════════════════════════════════════════
+// CELL TRIGGER
+// ══════════════════════════════════════════
+function triggerCell(cellIdx) {
+  const act = ACTIVITIES[cellIdx];
+  const p = players[currentPlayerIndex];
+
+  if (act.type === T.START) { nextTurn(); return; }
+
+  if (act.type === T.POINTS) {
+    p.points += act.pts;
+    addLog(`⭐ ${p.name} ganó ${act.pts} puntos. Total: ${p.points}`);
+    renderPlayers();
+    nextTurn();
+    return;
+  }
+
+  if (act.type === T.JAIL) {
+    p.skipTurn = true;
+    showModal(act, p, false);
+    return;
+  }
+
+  showModal(act, p);
+}
+
+// ══════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════
+function showModal(act, player, canComplete = true) {
+  waitingForActivity = true;
+  clearTimer();
+
+  document.getElementById('modal-icon').textContent = act.icon;
+  document.getElementById('modal-title').textContent = act.name;
+  document.getElementById('modal-desc').textContent = act.desc;
+  document.getElementById('modal-instruction').textContent = act.instruction;
+
+  const badge = document.getElementById('modal-badge');
+  badge.textContent = act.badge;
+  badge.style.color = act.badgeColor || '#8b6914';
+  badge.style.background = act.badgeBg || '#ffd966';
+
+  // Reward
+  const rewardEl = document.getElementById('modal-reward');
+  if (act.type === T.OWL) {
+    rewardEl.textContent = `Costo: 20 💎 Gemas`;
+    rewardEl.style.color = '#8b0000';
+  } else if (act.type === T.JAIL) {
+    rewardEl.textContent = '⛓️ Pierdes tu próximo turno';
+    rewardEl.style.color = '#8b0000';
+  } else if (act.pts) {
+    rewardEl.textContent = `🏆 Premio: ${act.pts} puntos`;
+    rewardEl.style.color = 'var(--dark-gold)';
+  } else {
+    rewardEl.textContent = '';
+  }
+
+  // Gem warning for OWL
+  const gemWarn = document.getElementById('gem-warning');
+  if (act.type === T.OWL) {
+    if (player.gems < 20) {
+      gemWarn.style.display = 'block';
+      gemWarn.textContent = `⚠️ ${player.name} no tiene suficientes gemas (${player.gems}/20). ¡Pierde 10 puntos en cambio!`;
+    } else {
+      gemWarn.style.display = 'none';
+    }
+  } else {
+    gemWarn.style.display = 'none';
+  }
+
+  // Buttons
+  const btns = document.getElementById('modal-buttons');
+  btns.innerHTML = '';
+
+  if (act.type === T.JAIL) {
+    const b = document.createElement('button');
+    b.className = 'btn-neutral';
+    b.textContent = '⛓️ Entendido, al calabozo';
+    b.onclick = () => closeModal('jail');
+    btns.appendChild(b);
+  } else if (act.type === T.OWL) {
+    const b = document.createElement('button');
+    b.className = 'btn-neutral';
+    b.textContent = player.gems >= 20 ? '💎 Pagar 20 Gemas' : '😰 Pagar penalización';
+    b.onclick = () => closeModal('owl');
+    btns.appendChild(b);
+  } else if (canComplete) {
+    const bOk = document.createElement('button');
+    bOk.className = 'btn-success';
+    bOk.textContent = '✅ ¡Lo logré!';
+    bOk.onclick = () => closeModal('success');
+
+    const bFail = document.createElement('button');
+    bFail.className = 'btn-fail';
+    bFail.textContent = '❌ No lo logré';
+    bFail.onclick = () => closeModal('fail');
+
+    btns.appendChild(bOk);
+    btns.appendChild(bFail);
+  }
+
+  // Timer
+  const timerBar = document.getElementById('timer-bar');
+  if (act.timer && canComplete) {
+    timerBar.style.display = 'block';
+    startTimer(act.timer, btns);
+  } else {
+    timerBar.style.display = 'none';
+  }
+
+  document.getElementById('activity-modal').classList.add('show');
+}
+
+function startTimer(seconds, btns) {
+  const fill = document.getElementById('timer-fill');
+  fill.style.width = '100%';
+  let remaining = seconds;
+
+  timerInterval = setInterval(() => {
+    remaining -= 0.1;
+    const pct = (remaining / seconds) * 100;
+    fill.style.width = pct + '%';
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      // Flash red
+      fill.style.background = '#e74c3c';
+    }
+  }, 100);
+}
+
+function clearTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function closeModal(result) {
+  clearTimer();
+  const act = ACTIVITIES[players[currentPlayerIndex].position];
+  const p = players[currentPlayerIndex];
+
+  document.getElementById('activity-modal').classList.remove('show');
+
+  if (result === 'success') {
+    p.points += act.pts || 0;
+    if (act.type === T.FELIX) p.gems += 10;
+    addLog(`✅ ${p.name} completó "${act.name}" → +${act.pts} pts. Total: ${p.points}`);
+  } else if (result === 'fail') {
+    addLog(`❌ ${p.name} no completó "${act.name}".`);
+  } else if (result === 'owl') {
+    if (p.gems >= 20) {
+      p.gems -= 20;
+      addLog(`🦉 ${p.name} pagó 20 💎 por la Lechuza. Gemas restantes: ${p.gems}`);
+    } else {
+      p.points = Math.max(0, p.points - 10);
+      addLog(`🦉 ${p.name} no tenía gemas. Pierde 10 puntos. Total: ${p.points}`);
+    }
+  } else if (result === 'jail') {
+    addLog(`⛓️ ${p.name} va al calabozo. Pierde el próximo turno.`);
+  }
+
+  renderPlayers();
+  waitingForActivity = false;
+
+  if (p.points >= WINNING_SCORE) {
+    showWinner();
+    return;
+  }
+
+  nextTurn();
+}
+
+function nextTurn() {
+  currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+  renderPlayers();
+  updateTurnInfo();
+}
+
+// ══════════════════════════════════════════
+// INFO ON CLICK (non-current player)
+// ══════════════════════════════════════════
+function showCellInfo(idx) {
+  // Just highlight — no action unless it's game turn
+}
+
+// ══════════════════════════════════════════
+// LOG
+// ══════════════════════════════════════════
+function addLog(text) {
+  const log = document.getElementById('log-entries');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.textContent = text;
+  log.insertBefore(entry, log.firstChild);
+  if (log.children.length > 30) log.removeChild(log.lastChild);
+}
+
+// ══════════════════════════════════════════
+// WINNER
+// ══════════════════════════════════════════
+function showWinner() {
+  // Find player with most points
+  const winner = players.reduce((a, b) => a.points > b.points ? a : b);
+  document.getElementById('winner-name').textContent = `${winner.name} — ${HOUSE_NAMES[winner.house]}`;
+  document.getElementById('winner-stats').textContent =
+    `⭐ ${winner.points} puntos · 💎 ${winner.gems} gemas`;
+  document.getElementById('winner-screen').classList.add('show');
+}
+</script>
+</body>
+</html>
